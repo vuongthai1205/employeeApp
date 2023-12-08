@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 env:
-  AZURE_WEBAPP_NAME: DotNetWeb
+  AZURE_WEBAPP_NAME: EmployeeApp
   AZURE_WEBAPP_PACKAGE_PATH: '.' # Set this to the path to your web app project, defaults to the repository root:
   DOTNET_VERSION: '8.0.100' # The .NET SDK version to use
 
@@ -26,9 +26,9 @@ jobs:
       
     - name: Build
       run: |
-        cd DotNet.WebApp
+        cd EmployeeApp
         dotnet build --configuration Release --no-restore
-        dotnet publish -c Release -o ../dotnet-webapp -r linux-x64 --self-contained true /p:UseAppHost=true
+        dotnet publish -c Release -o ../EmployeeApp -r linux-x64 --self-contained true /p:UseAppHost=true
     - name: Test
       run: |
         cd DotNet.WebApp.Tests
