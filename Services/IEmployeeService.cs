@@ -10,7 +10,7 @@ namespace EmployeeApp.Services
     {
         public Employee AddOrUpdateEmployee(Employee employee);
         public bool DeleteEmployee(int id);
-        public IEnumerable<Employee> GetAll();
+        public IEnumerable<Employee> GetAll(Dictionary<string, string> param);
         public Employee? GetById(int id);
         public void AddCompanyToEmployee(int id, int idC);
     }

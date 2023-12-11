@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using EmployeeApp.Configs;
 using EmployeeApp.DTO;
 using EmployeeApp.Models;
 using EmployeeApp.Services;
@@ -40,41 +41,61 @@ namespace EmployeeApp.Controllers
                     FirstName = employeeRequest.FirstName,
                     Phone = employeeRequest.Phone
                 };
-                if (employeeRequest.Phone.IsNullOrEmpty())
+
+                if (string.IsNullOrEmpty(employeeRequest.Phone))
                 {
                     response.Success = false;
-                    response.ErrorMessage = "Phone is require";
-                    return StatusCode(404, response);
+                    response.ErrorMessage = "Phone is required";
+                    return StatusCode(400, response);
+                }
+
+
+                string phonePattern = @"^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$";
+
+                if (!System.Text.RegularExpressions.Regex.IsMatch(employeeRequest.Phone, phonePattern))
+                {
+                    response.Success = false;
+                    response.ErrorMessage = "Invalid phone format";
+                    return StatusCode(400, response);
                 }
 
                 response.Data = _employeeService.AddOrUpdateEmployee(employee);
                 return StatusCode(201, response);
-
-
             }
-            catch (Exception)
+            catch (SqlException ex) when (ex.Number == 2601)
             {
-
+                // Handle specific SQL exception for duplicate key violation
                 response.Success = false;
-                response.ErrorMessage = "An unexpected error occurred.";
-                return StatusCode(500, response);
-
+                response.ErrorMessage = $"Duplicate key violation: The phone number {employeeRequest.Phone} already exists.";
+                return StatusCode(400, response);
             }
-
-
-
+            catch (SqlException ex)
+            {
+                // Handle other SQL exceptions
+                response.Success = false;
+                response.ErrorMessage = $"SQL error: {ex.Message}";
+                return StatusCode(500, response);
+            }
+            catch (Exception ex)
+            {
+                // Handle other generic exceptions
+                response.Success = false;
+                response.ErrorMessage = $"An unexpected error occurred: {ex.Message}";
+                return StatusCode(500, response);
+            }
 
         }
 
+
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public IActionResult GetAllEmployee()
+        public IActionResult GetAllEmployee([FromQuery] Dictionary<string, string> param)
         {
             ResponseDTO<IEnumerable<Employee>> response = new ResponseDTO<IEnumerable<Employee>>();
             try
             {
                 _logger.LogInformation("Fetching all the Employee from the storage");
-                response.Data = _employeeService.GetAll();
+                response.Data = _employeeService.GetAll(param);
 
                 return StatusCode(200, response);
             }
@@ -177,7 +198,8 @@ namespace EmployeeApp.Controllers
             }
         }
         [HttpPost("{id:int}/add-company/{idC:int}")]
-        public IActionResult AddCompanyToEmployee(int id, int idC){
+        public IActionResult AddCompanyToEmployee(int id, int idC)
+        {
             var responseDTO = new ResponseDTO<Company>();
 
             try

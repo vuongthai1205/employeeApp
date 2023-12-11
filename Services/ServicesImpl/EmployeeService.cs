@@ -37,9 +37,9 @@ namespace EmployeeApp.Services.ServicesImpl
 
         }
 
-        public IEnumerable<Employee> GetAll()
+        public IEnumerable<Employee> GetAll(Dictionary<string, string> param)
         {
-            return _employeeRepository.GetAll();
+            return _employeeRepository.GetAll(param);
         }
 
         public Employee? GetById(int id)

@@ -33,6 +33,15 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
+
+    builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:4200");
+        });
+});
 }
 
 
@@ -47,6 +56,7 @@ WebApplication app = builder.Build();
     app.Logger.LogInformation("Adding Routes");
     app.MapGet("/", () => "Hello World!");
     app.Logger.LogInformation("Starting the app");
+    app.UseCors();
     app.UseHttpsRedirection();
     app.MapControllers();
     app.Run();

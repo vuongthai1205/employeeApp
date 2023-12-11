@@ -99,9 +99,32 @@ namespace EmployeeApp.Repositories.RepositoriesImpl
 
         }
 
-        public IEnumerable<Employee> GetAll()
+        public IEnumerable<Employee> GetAll(Dictionary<string, string> param)
         {
-            return _dbContext.Employees.AsNoTracking().ToList();
+            var query = _dbContext.Employees.AsQueryable();
+
+            if (param != null && param.ContainsKey("sort"))
+            {
+                string sortDirection = param["sort"].ToLower();
+
+                switch (sortDirection)
+                {
+                    case "asc":
+                        query = query.Include(e => e.Company).OrderBy(e => e.FullName);
+                        break;
+
+                    case "desc":
+                        query = query.Include(e => e.Company).OrderByDescending(e => e.FullName);
+                        break;
+
+                    // Nếu giá trị không hợp lệ hoặc không được cung cấp, bạn có thể xử lý mặc định ở đây.
+                    default:
+                        query = query.Include(e => e.Company).OrderBy(e => e.FullName);
+                        break;
+                }
+            }
+
+            return query.AsNoTracking().Include(e => e.Company).ToList();
         }
 
         public Employee? GetById(int id)
