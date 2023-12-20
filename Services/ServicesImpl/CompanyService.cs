@@ -14,13 +14,16 @@ namespace EmployeeApp.Services.ServicesImpl
             _companyRepository = companyRepository;
         }
 
-        public void AddEmployeeToCompany(int id, int idE)
+        public void AddEmployeesToCompany(int id, int[] employeeIds)
         {
-            _companyRepository.AddEmployeeToCompany(id,idE);
+            _companyRepository.AddEmployeesToCompany(id,employeeIds);
         }
 
         public Company? AddOrUpdateCompany(Company company)
         {
+            if (company.Id !=0){
+                company.UpdateAt = DateTime.Now;
+            }
             return _companyRepository.AddOrUpdateCompany(company);
         }
 

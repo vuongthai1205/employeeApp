@@ -13,5 +13,6 @@ namespace EmployeeApp.Repositories
         public IEnumerable<Employee> GetAll(Dictionary<string, string> param);
         public Employee? GetById(int id);
         public void AddCompanyToEmployee(int id, int idC);
+        public int countEmployee();
     }
 }

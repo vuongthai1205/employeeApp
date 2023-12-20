@@ -27,10 +27,11 @@ namespace EmployeeApp.Models
         [MaxLength(50)]
         [Comment("This is first name of employee")]
         public string? FirstName { get; set; }
-        [Required]
+        [Required(ErrorMessage = "Phone number is required")]
         [MaxLength(13)]
         [Range(1,13)]
         [Comment("This is phone of employee")]
+        [RegularExpression(@"^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$")]
         public string? Phone { get; set; }
         public DateTime CreateAt { get; set; }
         public DateTime UpdateAt { get; set; }

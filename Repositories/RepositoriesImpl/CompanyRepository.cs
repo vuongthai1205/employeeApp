@@ -16,29 +16,43 @@ namespace EmployeeApp.Repositories.RepositoriesImpl
             _employeeDbContext = employeeDbContext;
         }
 
-        public void AddEmployeeToCompany(int id, int idE)
+        public void AddEmployeesToCompany(int id, int[] employeeIds)
         {
             using var transaction = _employeeDbContext.Database.BeginTransaction();
+
             try
             {
-                var e = _employeeDbContext.Employees.Find(idE);
-                var c = _employeeDbContext.Companies.Find(id);
+                var company = _employeeDbContext.Companies.Find(id);
 
-                if (e != null && c != null)
+                if (company != null)
                 {
-                    c.Employees.Add(e);
-                    _employeeDbContext.Companies.Update(c);
-                    _employeeDbContext.SaveChanges();
-                }
+                    foreach (var employeeId in employeeIds)
+                    {
+                        var employee = _employeeDbContext.Employees.Find(employeeId);
 
-                transaction.Commit();
+                        if (employee != null)
+                        {
+                            company.Employees.Add(employee);
+                        }
+                    }
+
+                    _employeeDbContext.Companies.Update(company);
+                    _employeeDbContext.SaveChanges();
+                    transaction.Commit();
+                }
+                else
+                {
+                    throw new InvalidOperationException("Company not found");
+                }
             }
             catch (Exception)
             {
                 transaction.Rollback();
                 // Handle or log the exception as needed
+                throw;
             }
         }
+
 
 
         public Company? AddOrUpdateCompany(Company company)
@@ -73,9 +87,13 @@ namespace EmployeeApp.Repositories.RepositoriesImpl
             using var transaction = _employeeDbContext.Database.BeginTransaction();
             try
             {
-                var company = _employeeDbContext.Companies.Single(c => c.Id == id);
+                var company = _employeeDbContext.Companies.Include(c => c.Employees).Single(c => c.Id == id);
                 if (company is not null)
                 {
+                    foreach (var employee in company.Employees)
+                    {
+                        employee.Company = null;
+                    }
                     _employeeDbContext.Companies.Remove(company);
                     _employeeDbContext.SaveChanges();
                     transaction.Commit();

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using EmployeeApp.DTO;
 using EmployeeApp.Models;
 using EmployeeApp.Services;
@@ -15,9 +16,11 @@ namespace EmployeeApp.Controllers
     public class CompanyController : ControllerBase
     {
         private ICompanyService _companyService;
-        public CompanyController(ICompanyService companyService)
+        public readonly IMapper _mapper;
+        public CompanyController(ICompanyService companyService, IMapper mapper)
         {
             _companyService = companyService;
+            _mapper = mapper;
         }
         [HttpPost]
         public IActionResult AddCompany([FromBody] CompanyRequest companyRequest)
@@ -25,11 +28,7 @@ namespace EmployeeApp.Controllers
             ResponseDTO<Company> responseDTO = new ResponseDTO<Company>();
             try
             {
-                Company company = new Company()
-                {
-                    Name = companyRequest.Name,
-                    Address = companyRequest.Address
-                };
+                Company company = _mapper.Map<Company>(companyRequest);
                 var c = _companyService.AddOrUpdateCompany(company);
                 if (c is not null)
                 {
@@ -137,14 +136,7 @@ namespace EmployeeApp.Controllers
                     return NotFound(responseDTO);
                 }
 
-                if (!string.IsNullOrEmpty(companyRequest.Name))
-                {
-                    company.Name = companyRequest.Name;
-                }
-                if (!string.IsNullOrEmpty(companyRequest.Address))
-                {
-                    company.Address = companyRequest.Address;
-                }
+                _mapper.Map(companyRequest, company);
 
                 var updateCompany = _companyService.AddOrUpdateCompany(company);
                 if (updateCompany is not null)
@@ -158,24 +150,24 @@ namespace EmployeeApp.Controllers
 
             }
             catch (Exception)
-            { 
+            {
                 responseDTO.Success = false;
                 responseDTO.ErrorMessage = "An unexpected error occurred.";
                 return StatusCode(500, responseDTO);
             }
         }
 
-        [HttpPost("{id}/add-employee/{idE}")]
-        public IActionResult AddEmployeeToCompany(int id, int idE){
+        [HttpPost("{id}/add-employees")] // Thay đổi đường dẫn để phản ánh việc thêm nhiều nhân viên
+        
+        public IActionResult AddEmployeesToCompany(int id, [FromBody] int[] employeeIds)
+        {
             var responseDTO = new ResponseDTO<Company>();
 
             try
             {
-                _companyService.AddEmployeeToCompany(id, idE);
+                _companyService.AddEmployeesToCompany(id, employeeIds);
 
                 return Ok(responseDTO);
-
-
             }
             catch (Exception)
             {
@@ -184,5 +176,6 @@ namespace EmployeeApp.Controllers
                 return StatusCode(500, responseDTO);
             }
         }
+
     }
 }

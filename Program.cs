@@ -1,4 +1,6 @@
+using System.Text.Json;
 using EmployeeApp.Configs;
+using EmployeeApp.Logger;
 using EmployeeApp.Repositories;
 using EmployeeApp.Repositories.RepositoriesImpl;
 using EmployeeApp.Services;
@@ -26,6 +28,7 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
         options.ModelMetadataDetailsProviders.Add(
             new SystemTextJsonValidationMetadataProvider());
     });
+
     builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
     builder.Services.AddScoped<IEmployeeService, EmployeeService>();
     builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
@@ -34,14 +37,37 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
 
+    builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
     builder.Services.AddCors(options =>
-{
-    options.AddDefaultPolicy(
-        policy =>
         {
-            policy.WithOrigins("http://localhost:4200");
+            options.AddPolicy("AllowLocalhost4200",
+                builder =>
+                {
+                    builder.WithOrigins("http://localhost:4200")
+                           .AllowAnyHeader()
+                           .AllowAnyMethod();
+                });
         });
+
+    builder.Logging.AddDbLogger(options =>
+{
+    builder.Configuration.GetSection("Logging").GetSection("Database").GetSection("Options").Bind(options);
 });
+builder.Services.AddLogging(logging =>
+{
+    logging.AddConsole();
+    logging.AddDebug();
+    logging.AddSimpleConsole(options =>
+    {
+        options.IncludeScopes = true;
+        options.SingleLine = true;
+        options.TimestampFormat = "yyyy-MM-dd HH:mm:ss ";
+        // Thêm định dạng ngày tháng năm vào TimestampFormat
+    });
+});
+
+
 }
 
 
@@ -56,7 +82,7 @@ WebApplication app = builder.Build();
     app.Logger.LogInformation("Adding Routes");
     app.MapGet("/", () => "Hello World!");
     app.Logger.LogInformation("Starting the app");
-    app.UseCors();
+    app.UseCors("AllowLocalhost4200");
     app.UseHttpsRedirection();
     app.MapControllers();
     app.Run();
