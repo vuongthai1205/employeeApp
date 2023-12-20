@@ -31,15 +31,20 @@ namespace EmployeeApp.Services.ServicesImpl
             return _employeeRepository.AddOrUpdateEmployee(employee);
         }
 
+        public int countEmployee()
+        {
+            return _employeeRepository.countEmployee();
+        }
+
         public bool DeleteEmployee(int id)
         {
             return _employeeRepository.DeleteEmployee(id);
 
         }
 
-        public IEnumerable<Employee> GetAll()
+        public IEnumerable<Employee> GetAll(Dictionary<string, string> param)
         {
-            return _employeeRepository.GetAll();
+            return _employeeRepository.GetAll(param);
         }
 
         public Employee? GetById(int id)

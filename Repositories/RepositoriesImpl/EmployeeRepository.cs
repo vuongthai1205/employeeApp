@@ -73,6 +73,16 @@ namespace EmployeeApp.Repositories.RepositoriesImpl
 
         }
 
+        public int countEmployee()
+        {
+            try{
+                var count = _dbContext.Employees.Count();
+                return count;
+            }catch(Exception){
+                throw;
+            }
+        }
+
         public bool DeleteEmployee(int id)
         {
             using var transaction = _dbContext.Database.BeginTransaction();
@@ -99,9 +109,41 @@ namespace EmployeeApp.Repositories.RepositoriesImpl
 
         }
 
-        public IEnumerable<Employee> GetAll()
+        public IEnumerable<Employee> GetAll(Dictionary<string, string> param)
         {
-            return _dbContext.Employees.AsNoTracking().ToList();
+            var query = _dbContext.Employees.AsQueryable();
+
+            if (param != null && param.ContainsKey("sort"))
+            {
+                string sortDirection = param["sort"].ToLower();
+
+                switch (sortDirection)
+                {
+                    case "asc":
+                        query = query.Include(e => e.Company).OrderBy(e => e.FullName);
+                        break;
+
+                    case "desc":
+                        query = query.Include(e => e.Company).OrderByDescending(e => e.FullName);
+                        break;
+
+                    // Nếu giá trị không hợp lệ hoặc không được cung cấp, bạn có thể xử lý mặc định ở đây.
+                    default:
+                        query = query.Include(e => e.Company).OrderBy(e => e.FullName);
+                        break;
+                }
+            }
+
+            if (param != null && param.ContainsKey("page")){
+                int p = Int32.Parse(param["page"].ToLower());
+                int pageSize =10;
+
+                if (p > 0) {  // Kiểm tra nếu page > 0 thì áp dụng giới hạn và vị trí bắt đầu
+                    query = query.Skip((p - 1) * pageSize).Take(pageSize);
+                }
+            }
+
+            return query.AsNoTracking().Include(e => e.Company).ToList();
         }
 
         public Employee? GetById(int id)

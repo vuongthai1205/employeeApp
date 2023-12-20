@@ -13,6 +13,7 @@ namespace EmployeeApp.Configs
         : base(options)
         {
         }
+         public DbSet<CustomError> Errors { get; set; }  
         public DbSet<Employee> Employees { get; set; }
         public DbSet<Company> Companies { get; set; }
 
